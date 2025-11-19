@@ -25,7 +25,15 @@ def gcd(a: int, b: int) -> int:
 
     return 1
 
-def euler_totient(number: int) -> int:
+def euler_totient(p: int, q: int) -> int:
+    """
+    Calculates how many of the numbers less than or equal to 
+    this value are coprime (two numbers have no common divisor except 1).
+    """
+    return (p - 1) * (q - 1)
+
+# this was my old way, I replaced this with euler_totient() now.
+def euler_totient_brute_force(number: int) -> int:
     """
     Calculates how many of the numbers less than or equal to 
     this value are coprime (two numbers have no common divisor except 1).
@@ -39,25 +47,27 @@ def euler_totient(number: int) -> int:
 
     return coprime_count
 
-def random_encryption_exponent(rsa_module: int) -> int:
+def random_encryption_exponent(p: int, q: int) -> int:
     # As we aren't creating a real and secure RSA 
     # implementation we can just limit the randomized number to 8 bits.
     potential_encryption_exponent = secrets.randbits(8)
 
     # The encryption exponent MUST be a coprime of ϕ(n) and to 
     # check that we can use our gcd and euler totient implementation.
-    if gcd(potential_encryption_exponent, euler_totient(rsa_module)) == 1:
+    if gcd(potential_encryption_exponent, euler_totient(p, q)) == 1:
         return potential_encryption_exponent
 
     # python's default max recursion depth is 1000 
     # and the maximum number we can generate is 255 so 
     # we can responsibly use recursion here.
-    return random_encryption_exponent(rsa_module)
+    return random_encryption_exponent(p, q)
 
-def find_decryption_exponent(encryption_exponent: int, rsa_module: int) -> Optional[int]:
+def find_decryption_exponent(encryption_exponent: int, p: int, q: int) -> Optional[int]:
     decryption_exponent = 1
 
-    coprime_numbers_count = euler_totient(rsa_module)
+    coprime_numbers_count = euler_totient(p, q)
+
+    print(f"euler totient --> {coprime_numbers_count}")
 
     while decryption_exponent < coprime_numbers_count:
         # (e x d) mod ϕ(n) = 1
@@ -86,8 +96,8 @@ if __name__ == "__main__":
     # to "n" so we can get a value for "e" and "d".
 
     # encryption_exponent = 2519
-    encryption_exponent = random_encryption_exponent(rsa_module) # aka "e"
-    decryption_exponent = find_decryption_exponent(encryption_exponent, rsa_module) # aka "d"
+    encryption_exponent = random_encryption_exponent(p, q) # aka "e"
+    decryption_exponent = find_decryption_exponent(encryption_exponent, p, q) # aka "d"
 
     public_key = Key(
         rsa_module,
